@@ -27,7 +27,7 @@ class gridworld():
         self.actionList = {'u':np.array([0,1]),'d':np.array([0,-1]),
                            'l':np.array([-1,0]),'r':np.array([1,0])}
         self.n_steps = 0
-        self.path = [self.agentPos]
+        self.qTable= {}
         
         
         if randomGoal:
@@ -117,24 +117,36 @@ class gridworld():
                 self.agentPos = nextPos
             else:
                 self.agentPos = self.agentPos
+            
+            return self.agentPos, self.map[self.agentPos[0],self.agentPos[1]]
     
     def resetAgent(self):
         self.agentPos = np.array([0,0])
-        self.path = [self.agentPos]
-        
+        self.n_steps = 0
+    def getQvalue(self, pos, act):
+        if repr(pos) in self.qTable:
+            if act in self.qTable[repr(pos)]:               
+                return self.qTable[repr(pos)][act]
+            else:
+                self.qTable[repr(pos)][act] = 0
+                return 0
+                
+        else:
+            self.qTable[repr(pos)] = {}
+            self.qTable[repr(pos)][act] = 0
+            return 0
+                   
 ############################################################################
 ############################################################################
     def randomAgent(self):
         act = random.choice(['u','d','l','r'])
         self.nextPos(act)
-        self.n_steps += 1
         return self.agentPos, self.map[self.agentPos[0],self.agentPos[1]]
     
     
     def manualAgent(self):
         act = input("choose act from ['u', 'd', 'l, 'r'] \t")
         self.nextPos(act)
-        self.n_steps += 1
         return self.agentPos, self.map[self.agentPos[0],self.agentPos[1]]
     
     
@@ -147,16 +159,54 @@ class gridworld():
         else:
             act = random.choice(['u','d','l','r'])
             self.nextPos(act)
-        self.n_steps += 1
         
         return self.agentPos, self.map[self.agentPos[0],self.agentPos[1]]
     
         
     def worseAgent(self): ##all the way up
         self.nextPos('u')
-        self.n_steps += 1
         
         return self.agentPos, self.map[self.agentPos[0],self.agentPos[1]]
+    
+    
+    def qAgent(self, epsilon = 0.2, alpha = 0.1, discount = 0.8):
+        actlist = ['u','d','l','r']
+        random.shuffle(actlist)      
+        key = random.random()
+        
+        if self.agentPos[0] == self.goalPos[0] and self.agentPos[1] == self.goalPos[1]:
+            #self.qTable[repr(self.goalPos)] = {'u':0,'d':0,'l':0,'r':0}
+            
+            steps = self.n_steps
+            #self.resetAgent() 
+            reward = 0
+            self.randomAgent()
+
+            print(self.getQvalue(np.array([10,9]),'u'), self.getQvalue(np.array([9,10]),'r'))
+            
+        else:
+            if key < epsilon:
+                act = random.choice(actlist)
+                
+            else:
+                act = max(actlist, key = lambda act: self.getQvalue(self.agentPos,act))
+            
+            currentPos = self.agentPos       
+            nextPos, reward = self.nextPos(act)
+            currentQ = self.getQvalue(currentPos,act)
+            act_pi = max(actlist, key=lambda a: self.getQvalue(nextPos,a))
+            nextQ = self.getQvalue(nextPos, act_pi)
+            
+            self.qTable[repr(currentPos)][act] = currentQ + alpha*(reward + discount*nextQ - currentQ)  
+            self.n_steps += 1
+            steps = self.n_steps
+                
+            
+        return self.agentPos, reward, steps
+        
+            
+                
+        
         
         
             
