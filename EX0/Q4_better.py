@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Sep 15 03:02:20 2020
+Created on Wed Sep 16 01:10:39 2020
 
 @author: ziyi
 """
@@ -9,6 +9,6 @@ Created on Tue Sep 15 03:02:20 2020
 
 from evaluate import evaluate
 
-agentName = 'random'
+agentName = 'better'
 
 evaluate(agentName)

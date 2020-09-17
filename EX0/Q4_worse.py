@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Sep 15 03:02:20 2020
+Created on Wed Sep 16 13:01:34 2020
 
 @author: ziyi
 """
 
 
-from evaluate import evaluate
+from evaluate import evaluate 
 
-agentName = 'random'
+agentName = 'worse'
 
 evaluate(agentName)

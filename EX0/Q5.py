@@ -6,23 +6,10 @@ Created on Tue Sep 15 19:12:05 2020
 @author: ziyi
 """
 
+from evaluate import evaluate, allInOne
 
-from gridworld import gridworld
-import matplotlib.pyplot as plt
+agentName = 'q'
 
-gw = gridworld()
-
-i = 0
-reward = 0
-reward_plot= []
-while i < 10000:
-    p, r ,steps = gw.qAgent()
-    reward += r
-    reward_plot.append(reward)
-    if r == 1:
-        print('Steps:',steps)
-    i += 1
-    
-plt.figure()
-plt.plot(reward_plot)
-plt.show()
+evaluate(agentName, randomGoal = True)
+#%%
+allInOne(randomGoal = True)

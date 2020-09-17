@@ -28,10 +28,11 @@ class gridworld():
                            'l':np.array([-1,0]),'r':np.array([1,0])}
         self.n_steps = 0
         self.qTable= {}
+        #self.goalPos = np.array([0,0])
         
         
         if randomGoal:
-            self.randomGoal
+            self.randomGoal()
         else:
             self.goalPos = np.array([10,10])
         self.map[self.goalPos[0], self.goalPos[1]] = 1
@@ -40,9 +41,10 @@ class gridworld():
         notDone = True
         while notDone:
             g = np.array([random.randrange(0,11)] + [random.randrange(0,11)])
-            if self.__isValid(g) and g != self.agentPos:
+            if self.__isValid(g) and repr(g) != repr(self.agentPos):
                 self.goalPos = g
                 notDone = False
+                print('random goalPos:',self.goalPos)
             
 
     def setAgentPos(self,pos):
@@ -78,7 +80,7 @@ class gridworld():
         if action not in self.actionList:
             print("action not in list")
         elif self.map[self.agentPos[0],self.agentPos[1]] == 1:
-            print('New episode!')
+            #print('New episode!')
             self.resetAgent()
         else:
             legalActs = self.legalActions(self.agentPos)
@@ -136,18 +138,22 @@ class gridworld():
             self.qTable[repr(pos)][act] = 0
             return 0
                    
+    def resetQtable(self):
+        self.qTable = {} 
 ############################################################################
 ############################################################################
     def randomAgent(self):
         act = random.choice(['u','d','l','r'])
         self.nextPos(act)
-        return self.agentPos, self.map[self.agentPos[0],self.agentPos[1]]
+        self.n_steps += 1
+        return self.agentPos, self.map[self.agentPos[0],self.agentPos[1]], self.n_steps
     
     
     def manualAgent(self):
         act = input("choose act from ['u', 'd', 'l, 'r'] \t")
         self.nextPos(act)
-        return self.agentPos, self.map[self.agentPos[0],self.agentPos[1]]
+        self.n_steps += 1
+        return self.agentPos, self.map[self.agentPos[0],self.agentPos[1]], self.n_steps
     
     
     def betterAgent(self):   ###has a preference of moving to top-right corner
@@ -159,30 +165,30 @@ class gridworld():
         else:
             act = random.choice(['u','d','l','r'])
             self.nextPos(act)
+            
+        self.n_steps += 1
         
-        return self.agentPos, self.map[self.agentPos[0],self.agentPos[1]]
+        return self.agentPos, self.map[self.agentPos[0],self.agentPos[1]], self.n_steps
     
         
     def worseAgent(self): ##all the way up
-        self.nextPos('u')
+        self.nextPos('r')
+        self.n_steps += 1
         
-        return self.agentPos, self.map[self.agentPos[0],self.agentPos[1]]
+        return self.agentPos, self.map[self.agentPos[0],self.agentPos[1]], self.n_steps
     
     
-    def qAgent(self, epsilon = 0.2, alpha = 0.1, discount = 0.8):
+    def qAgent(self, epsilon = 0.2, alpha = 0.1, discount = 0.9):
         actlist = ['u','d','l','r']
         random.shuffle(actlist)      
         key = random.random()
         
-        if self.agentPos[0] == self.goalPos[0] and self.agentPos[1] == self.goalPos[1]:
-            #self.qTable[repr(self.goalPos)] = {'u':0,'d':0,'l':0,'r':0}
-            
+        if self.agentPos[0] == self.goalPos[0] and self.agentPos[1] == self.goalPos[1]:            
             steps = self.n_steps
-            #self.resetAgent() 
             reward = 0
             self.randomAgent()
 
-            print(self.getQvalue(np.array([10,9]),'u'), self.getQvalue(np.array([9,10]),'r'))
+            #print(self.getQvalue(np.array([10,9]),'u'), self.getQvalue(np.array([9,10]),'r'))
             
         else:
             if key < epsilon:
