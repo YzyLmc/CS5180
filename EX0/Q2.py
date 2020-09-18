@@ -12,6 +12,6 @@ from gridworld import gridworld
 gw = gridworld()
 
 while True:
-    p, r = gw.manualAgent()    
+    p, r, s = gw.manualAgent()    
     print('Pos',p)
     print('reward',r)

@@ -150,7 +150,7 @@ class gridworld():
     
     
     def manualAgent(self):
-        act = input("choose act from ['u', 'd', 'l, 'r'] \t")
+        act = input("choose act from ['u', 'd', 'l, 'r'] \n")
         self.nextPos(act)
         self.n_steps += 1
         return self.agentPos, self.map[self.agentPos[0],self.agentPos[1]], self.n_steps
@@ -205,7 +205,7 @@ class gridworld():
             
             self.qTable[repr(currentPos)][act] = currentQ + alpha*(reward + discount*nextQ - currentQ)  
             self.n_steps += 1
-            steps = self.n_steps
+            steps = 0
                 
             
         return self.agentPos, reward, steps

@@ -156,3 +156,25 @@ def allInOne(trail = 10, steps = 10000, randomGoal = False):
     ax.set_title('Policy Comparison')
     ax.legend(loc="upper left")
     plt.show()
+    
+def plotSteps( steps = 10000, randomGoal = False):
+    gw = gridworld(randomGoal = randomGoal)
+    fig, ax = plt.subplots()
+        
+    i = 0
+    totalstep_plot = []
+    while i < steps:
+        p, r , s = gw.qAgent()
+        if s != 0:
+            totalstep_plot.append(s)
+        i += 1
+    ax.plot(totalstep_plot, alpha = 0.15)
+    gw.resetQtable()
+        
+    mean_steps_plot = np.mean(totalstep_plot, axis = 0)
+    ax.plot(mean_steps_plot, color = 'black')
+    
+    ax.set_ylabel('Total steps')
+    ax.set_xlabel('Episode')
+    ax.set_title('Steps per episode of learning policy')
+    plt.show()
