@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-n_times = 1000
+n_times = 10000
 trials = 2000
 
 tenArm = tenArm(n_times = n_times, trials = trials,randomWalk = True)

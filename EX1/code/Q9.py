@@ -38,7 +38,7 @@ ax.plot(x,reward_plot3,color = 'b', label = 'alpha = 0.1, without baseline')
 ax.fill_between(x, reward_plot3-1.96*std3/np.sqrt(trials), reward_plot3+1.96*std3/np.sqrt(trials), alpha = 0.2, color = 'b')
 ax.hlines(opt3,0,n_times, color = 'b', linestyles = 'dashed')
 
-ax.plot(x,reward_plot2,color = 'black', label = 'alpha = 0.4, without baseline')
+ax.plot(x,reward_plot4,color = 'black', label = 'alpha = 0.4, without baseline')
 ax.fill_between(x, reward_plot4-1.96*std4/np.sqrt(trials), reward_plot4+1.96*std4/np.sqrt(trials), alpha = 0.2, color = 'black')
 ax.hlines(opt4,0,n_times, color = 'black', linestyles = 'dashed')
 
