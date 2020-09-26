@@ -35,4 +35,7 @@ ax = fig.add_axes([0,0,1,1])
 
 # Create the boxplot
 bp = ax.violinplot(data_to_plot)
+ax.set_xlabel('Action')
+ax.set_ylabel('Reward Distribution')
+ax.hlines(0,1,10,linestyle='dashed')
 plt.show()
