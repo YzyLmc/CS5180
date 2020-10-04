@@ -46,7 +46,6 @@ class tenArm():
         n_times = self.n_times
         trials = self.trials
         rewardfin = np.zeros([1,n_times])
-        avgcount = np.array([0]*n_times)
         optMat = np.zeros([n_times,trials])
         optfin = np.zeros([1,n_times])
         optLs = []
@@ -64,7 +63,6 @@ class tenArm():
                 else:
                     acts = [idx for idx, j in enumerate(Q_list) if j == max(Q_list)]
                     act = np.random.choice(acts)   
-               # print(act)
                 if act == np.argmax(self.q_list):
                     optMat[i,t] = 1
                 acts_count[act] += 1
@@ -73,12 +71,6 @@ class tenArm():
                 rewardMat[i,t] = reward
                 opcountLs.append(opcount/(i+1))
                 
-                
-            #print(Q_list,self.q_list)
-            #print(max(Q_list),max(self.q_list))   
-            #print(np.argmax(np.array(Q_list)),np.argmax(np.array(self.q_list)))  
-        
-            avgcount = avgcount + (opcountLs - avgcount)/(t+1)
             optLs.append(max(self.q_list))
         for i in range(len(stdMat[0,:])):
             stdMat[0,i] = np.std(rewardMat[i,:])
@@ -90,7 +82,6 @@ class tenArm():
         n_times = self.n_times
         trials = self.trials
         rewardfin = np.zeros([1,n_times])
-        avgcount = np.array([0]*n_times)
         optMat = np.zeros([n_times,trials])
         optfin = np.zeros([1,n_times])
         optLs = np.zeros([1,n_times])
@@ -118,13 +109,7 @@ class tenArm():
                 rewardMat[i,t] = reward
                 opcountLs.append(opcount/(i+1))
                 
-                
-            #print(Q_list,self.q_list)
-            #print(max(Q_list),max(self.q_list))   
-            #print(np.argmax(np.array(Q_list)),np.argmax(np.array(self.q_list)))  
-                
-            avgcount = avgcount + (opcountLs - avgcount)/(t+1)
-            
+                                            
         for i in range(len(stdMat[0,:])):
             stdMat[0,i] = np.std(rewardMat[i,:])
             rewardfin[0,i] = np.mean(rewardMat[i,:])
@@ -136,7 +121,6 @@ class tenArm():
         n_times = self.n_times
         trials = self.trials
         rewardfin = np.zeros([1,n_times])
-        avgcount = np.array([0]*n_times)
         optMat = np.zeros([n_times,trials])
         optfin = np.zeros([1,n_times])
         optLs = np.zeros([1,n_times])
@@ -149,7 +133,6 @@ class tenArm():
             acts_count = {0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0}
             for i in range(n_times):
                 self.q_list = self.q_his[i]
-                #print(self.q_list)
                 coin = np.random.random()
                 if coin < epsilon:
                     act = np.random.choice(list(range(10)))
@@ -165,13 +148,7 @@ class tenArm():
                 Q_list[act] = Q_list[act] + (reward - Q_list[act])*alpha
                 opcountLs.append(opcount/(i+1))
                 
-                
-            #print(Q_list,self.q_list)
-            #print(max(Q_list),max(self.q_list))   
-            #print(np.argmax(np.array(Q_list)),np.argmax(np.array(self.q_list)))  
-                
-            avgcount = avgcount + (opcountLs - avgcount)/(t+1)
-            
+
         for i in range(len(stdMat[0,:])):
             stdMat[0,i] = np.std(rewardMat[i,:])
             rewardfin[0,i] = np.mean(rewardMat[i,:])
@@ -200,16 +177,14 @@ class tenArm():
                     act = max(acts_count.keys(), key=lambda act: Q_list[act])   
                 if act == np.argmax(self.q_list):
                     optMat[i,t] = 1
-
+                    
+                #if i < 30:
+                #    print(np.around(Q_list,3))
                     
                 acts_count[act] += 1
                 reward = self.pull(act+1)
                 Q_list[act] = Q_list[act] + (reward - Q_list[act])*alpha
                 rewardMat[i,t] = reward
-                
-            #print(Q_list,self.q_list)
-            #print(max(Q_list),max(self.q_list))   
-            #print(np.argmax(np.array(Q_list)),np.argmax(np.array(self.q_list)))  
                 
             optLs.append(max(self.q_list))
             
@@ -225,7 +200,6 @@ class tenArm():
         n_times = self.n_times
         trials = self.trials
         rewardfin = np.zeros([1,n_times])
-        avgcount = np.array([0]*n_times)
         optMat = np.zeros([n_times,trials])
         optfin = np.zeros([1,n_times])
         optLs = []
@@ -250,12 +224,7 @@ class tenArm():
                 rewardMat[i,t] = reward
                 opcountLs.append(opcount/(i+1))
                 
-                
-            #print(Q_list,self.q_list)
-            #print(max(Q_list),max(self.q_list))   
-            #print(np.argmax(np.array(Q_list)),np.argmax(np.array(self.q_list)))  
-                
-            avgcount = avgcount + (opcountLs - avgcount)/(t+1)
+
             optLs.append(max(self.q_list))
         
         for i in range(len(stdMat[0,:])):
@@ -268,7 +237,6 @@ class tenArm():
         n_times = self.n_times
         trials = self.trials
         rewardfin = np.zeros([1,n_times])
-        avgcount = np.array([0]*n_times)
         optMat = np.zeros([n_times,trials])
         optfin = np.zeros([1,n_times])
         optLs = []
