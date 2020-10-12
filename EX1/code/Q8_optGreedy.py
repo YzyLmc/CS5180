@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 
 n_times = 1000
-trials = 2000
+trials = 20
 
 tenArm = tenArm(n_times = n_times, trials = trials)
 
