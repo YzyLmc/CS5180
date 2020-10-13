@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Oct 11 15:08:20 2020
-
 @author: ziyi
 """
 
@@ -235,10 +234,7 @@ class carRental():
             for num1,prob1 in actualRentA.items():
                 for num2, prob2 in returnA.items():
                     closeAprob = prob1*prob2
-                    if new_state[0] - num1 + num2 >10:
-                        park = 4
-                    else: park = 0
-                    reward = num1 * 10 - 2* max((abs(n_move) -1),0) - park   
+                    reward = num1 * 10 - 2* max((abs(n_move) -1),0)
                     try:
                         rewardA[reward] += closeAprob
                     except:
@@ -268,10 +264,7 @@ class carRental():
             for num1,prob1 in actualRentA.items():
                 for num2, prob2 in returnA.items():
                     closeAprob = prob1*prob2
-                    if new_state[0] - num1 + num2 >10:
-                        park = 4
-                    else: park = 0
-                    reward = num1 * 10 - 2* max((abs(n_move) -1),0) - park       
+                    reward = num1 * 10 - 2* max((abs(n_move) -1),0)
                     try:
                         rewardA[reward] += closeAprob
                     except:
@@ -305,10 +298,7 @@ class carRental():
             for num1,prob1 in actualRentB.items():
                 for num2, prob2 in returnB.items():
                     closeBprob = prob1*prob2
-                    if new_state[1] - num1 + num2 >10:
-                        park = 4
-                    else: park = 0
-                    reward = num1 * 10 - 2* max((abs(n_move) -1),0) - park     
+                    reward = num1 * 10 - 2* max((abs(n_move) -1),0)
                     try:
                         rewardB[reward] += closeBprob
                     except:
@@ -337,10 +327,7 @@ class carRental():
             for num1,prob1 in actualRentB.items():
                 for num2, prob2 in returnB.items():
                     closeBprob = prob1*prob2
-                    if new_state[1] - num1 + num2 >10:
-                        park = 4
-                    else: park = 0
-                    reward = num1 * 10 - 2* max((abs(n_move) -1),0) - park  
+                    reward = num1 * 10 - 2* max((abs(n_move) -1),0)
                     try:
                         rewardB[reward] += closeBprob
                     except:
@@ -374,7 +361,7 @@ class carRental():
         for rewardBi, probRBi in rewardB.items():
             r2 += rewardBi * probRBi
         
-        newstateV += r1 + r2
+        newstateV += r1 + r2 
         
         return newstateV
     
@@ -462,7 +449,7 @@ if __name__ == '__main__':
     #%%
 import matplotlib.pyplot as plt
 fig, ax = plt.subplots()
-im = ax.imshow(newAmap)
+im = ax.imshow(newAmap4)
     
 plt.show() 
 #%%
@@ -476,7 +463,7 @@ def surface_plot (matrix, **kwargs):
     surf = ax.plot_surface(x, y, matrix, **kwargs)
     return (fig, ax, surf)
 
-(fig, ax, surf) = surface_plot(vMap4, cmap=plt.cm.coolwarm)
+(fig, ax, surf) = surface_plot(vMap4-60, cmap=plt.cm.coolwarm)
 
 fig.colorbar(surf)
 
@@ -485,6 +472,3 @@ ax.set_ylabel('n_Cars(B)')
 ax.set_zlabel('values')
 
 plt.show()  
-                        
-
-                
