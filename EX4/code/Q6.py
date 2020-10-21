@@ -263,6 +263,26 @@ class gridworld():
             #print('onpolicy',e)
         return rewardLs,aMapLs, epLs, actLsLs
     
+    def onpolicy(self,rewardLs,aMapLs,epLs,actLsLs):
+        qMap = [[ {'u':0,'d':0,'l':0,'r':0} for i in range(11)] for i in range(11)]
+        cMap = [[ {'u':0,'d':0,'l':0,'r':0} for i in range(11)] for i in range(11)]
+        for i in range(len(epLs)):
+            stateLs = epLs[i][:-1]
+            actLs = actLsLs[i]
+            rewardi = rewardLs[i]
+        
+            for j in range(len(stateLs)):
+                state = stateLs[-j-1]
+                reward = pow(rewardi*0.99,j+1)
+                act = actLs[-j-1]
+                cMap[state[0]][state[1]][act] += 1
+                qMap[state[0]][state[1]][act] += (reward - qMap[state[0]][state[1]][act])/cMap[state[0]][state[1]][act]
+
+                
+                print(reward)
+                    
+        return qMap
+    
     def offpolicy(self,rewardLs,aMapLs,epLs,actLsLs):
         qMap = [[ {'u':0,'d':0,'l':0,'r':0} for i in range(11)] for i in range(11)]
         pi_map = self.aMap
@@ -372,15 +392,16 @@ def findIndex(stateLs):
         stateDic[repr(state)] = length - i - 1
     
     return stateDic
-#%%
+
 
 if __name__ == '__main__':
     gw = gridworld()
     rewardLs,aMapLs, epLs, actLsLs = gw.mcControl()
-    
+    qMap_on = gw.onpolicy(rewardLs,aMapLs, epLs, actLsLs)    
     qMap,pi_map,cMap = gw.offpolicy(rewardLs,aMapLs, epLs, actLsLs)
+
  #%%   offpolicy estimation of Vpi 
-    on_map = gw.qMap
+    on_map = qMap_on
     
     vMap_off = np.zeros([11,11])
     for i in range(len(qMap)):
