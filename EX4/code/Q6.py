@@ -376,8 +376,8 @@ def findIndex(stateLs):
 
 if __name__ == '__main__':
     gw = gridworld()
-    #rewardLs,aMapLs, epLs, actLsLs = gw.mcControl()
-    '''
+    rewardLs,aMapLs, epLs, actLsLs = gw.mcControl()
+    
     qMap,pi_map,cMap = gw.offpolicy(rewardLs,aMapLs, epLs, actLsLs)
  #%%   offpolicy estimation of Vpi 
     on_map = gw.qMap
@@ -422,9 +422,9 @@ if __name__ == '__main__':
     ax1.set_zlabel('values')
     
     plt.show()  
-    '''
+    
     #%% Vpi using DP
-    vMap = gw.dp(pi_star)
+    vMap = gw.dp(gw.aMap)
     
     from mpl_toolkits import mplot3d
     import matplotlib.pyplot as plt
