@@ -126,7 +126,7 @@ if __name__ == '__main__':
         surf = ax.plot_surface(x, y, matrix, **kwargs)
         return (fig, ax, surf)
 
-    (fig, ax, surf) = surface_plot(vMap_A, cmap=plt.cm.coolwarm)
+    (fig, ax, surf) = surface_plot(vMap_noA, cmap=plt.cm.coolwarm)
     
     fig.colorbar(surf)
     
