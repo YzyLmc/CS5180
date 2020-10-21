@@ -140,7 +140,7 @@ if __name__ == '__main__':
     policy = bj1.mcControl(eps=3000000)  
     #%%
     fig, ax = plt.subplots()
-    im = ax.imshow(bj1.aMap[10:,:,1])
+    im = ax.imshow(bj1.aMap[10:,:,1],extent = [0,10,21,10])
     
     plt.show() 
 #%%
