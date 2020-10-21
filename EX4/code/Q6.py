@@ -224,6 +224,21 @@ class gridworld():
             print(len(stateLs),reward)    
         return stateLs, actLs, reward
     
+    def oneEpsCtrlGreedy(self, aMap):
+        self.resetAgent()
+        stateLs = []
+        stateLs.append(self.agentPos)
+        actLs = []
+        
+        while repr(self.agentPos) != repr(self.goalPos):
+            act = aMap[self.agentPos[0]][self.agentPos[1]]
+            pos, reward = self.nextPos(act)
+            stateLs.append(pos)
+            actLs.append(act)
+            
+  
+        return stateLs, actLs
+    
     def mcControl(self,eps = 10000,gamma = 0.99):
         e = 0
         rewardLs = []
@@ -263,23 +278,26 @@ class gridworld():
             #print('onpolicy',e)
         return rewardLs,aMapLs, epLs, actLsLs
     
-    def onpolicy(self,rewardLs,aMapLs,epLs,actLsLs):
+    def onpolicy(self, aMap, eps = 10000):
         qMap = [[ {'u':0,'d':0,'l':0,'r':0} for i in range(11)] for i in range(11)]
         cMap = [[ {'u':0,'d':0,'l':0,'r':0} for i in range(11)] for i in range(11)]
-        for i in range(len(epLs)):
-            stateLs = epLs[i][:-1]
-            actLs = actLsLs[i]
-            rewardi = rewardLs[i]
-        
-            for j in range(len(stateLs)):
-                state = stateLs[-j-1]
-                reward = pow(rewardi*0.99,j+1)
-                act = actLs[-j-1]
+        e = 0
+        while e < eps:
+            print(e)
+            stateLs, actLs = self.oneEpsCtrlGreedy(aMap)
+            stateDic = findIndex(stateLs)
+            for state, index in stateDic.items():
+                state = state[7:-2].split(',')
+                state = [int(state[0]),int(state[1])]
+                rewardi = pow(0.99,len(stateLs)-index-1)
+                try:
+                    act = actLs[index]
+                except:
+                    continue
                 cMap[state[0]][state[1]][act] += 1
-                qMap[state[0]][state[1]][act] += (reward - qMap[state[0]][state[1]][act])/cMap[state[0]][state[1]][act]
-
+                qMap[state[0]][state[1]][act] += ( rewardi- qMap[state[0]][state[1]][act])/cMap[state[0]][state[1]][act]
                 
-                print(reward)
+            e += 1        
                     
         return qMap
     
@@ -307,7 +325,6 @@ class gridworld():
                 elif act != pi_map[state[0]][state[1]]:
                     break
                 
-                print(reward)
                     
         return qMap,pi_map,cMap
     
@@ -397,11 +414,12 @@ def findIndex(stateLs):
 if __name__ == '__main__':
     gw = gridworld()
     rewardLs,aMapLs, epLs, actLsLs = gw.mcControl()
-    qMap_on = gw.onpolicy(rewardLs,aMapLs, epLs, actLsLs)    
+    #%%
+    qMap_on = gw.onpolicy(aMapLs[-1])    
     qMap,pi_map,cMap = gw.offpolicy(rewardLs,aMapLs, epLs, actLsLs)
 
  #%%   offpolicy estimation of Vpi 
-    on_map = qMap_on
+
     
     vMap_off = np.zeros([11,11])
     for i in range(len(qMap)):
@@ -409,9 +427,9 @@ if __name__ == '__main__':
             vMap_off[i,j] = max(qMap[i][j].values())
             
     vMap_on = np.zeros([11,11])
-    for i in range(len(qMap)):
-        for j in range(len(qMap[0])):
-            vMap_on[i,j] = max(on_map[i][j].values())
+    for i in range(len(qMap_on)):
+        for j in range(len(qMap_on[0])):
+            vMap_on[i,j] = max(qMap_on[i][j].values())
     
     from mpl_toolkits import mplot3d
     import matplotlib.pyplot as plt
