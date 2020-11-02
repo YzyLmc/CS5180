@@ -8,6 +8,7 @@ Created on Fri Oct 30 23:34:10 2020
 
 import numpy as np
 import random
+from copy import copy
 
 class gridworld():
     
@@ -81,7 +82,7 @@ class gridworld():
             self.agentPos = finPos
             reward = -1
             if repr(self.agentPos) == repr(self.goalPos):
-                reward = 0
+                reward = -1
             #print(self.agentPos)
             return self.agentPos, reward
     
@@ -404,6 +405,60 @@ class gridworld():
         
         return vMap
     
+    def tdPredicte(self,epsLs, alpha = 0.5, num = 100):
+        vMap = np.zeros([7,10])
+        d = 0
+        while d < num :
+            for i in range(len(epsLs)):
+                eps = epsLs[i]
+                for n in range(len(eps)-1):
+                    state = eps[n]
+                    nxtState = eps[n+1]
+                    #g = alpha*(-1 + vMap[nxtState[0],nxtState[1]]-vMap[state[0],state[1]])
+                    #print('abc', alpha*(-1 + vMap[nxtState[0],nxtState[1]]-vMap[state[0],state[1]]))
+                    vMap[state[0],state[1]] += alpha*(-1 + vMap[nxtState[0],nxtState[1]]-vMap[state[0],state[1]])
+
+            d += 1
+            #print(vMap)
+        return vMap
+    
+    def mcPredicte(self, epsLs, delta = 0.01, num = 100):
+        vMap = np.zeros([7,10])
+        vCount = np.zeros([7,10])
+        d = 0
+        while d < num:
+            for i in range(len(epsLs)):
+                eps = epsLs[i]
+                stateDic = findIndex(eps)
+                for state, index in stateDic.items():
+                    state = state = state[7:-2].split(',')
+                    state = [int(state[0]),int(state[1])]
+                    vCount[state[0]][state[1]] += 1
+                    vMap[state[0]][state[1]] += (-(len(eps)-index-1) - vMap[state[0]][state[1]])/vCount[state[0]][state[1]]
+            d += 1
+        return vMap        
+
+    def ntdPredicte(self,epsLs, nStep = 4, alpha = 0.5, num = 100):
+        vMap = np.zeros([7,10])
+        d = 0
+        while d < num:
+            for i in range(len(epsLs)):
+                eps = epsLs[i]
+                for n in range(len(eps) + nStep-1):
+                    tao = n - nStep + 1
+                    if tao >-1:
+                        state = eps[tao]
+                        h = min(len(eps)-1, nStep + tao)    
+                        nxtState = eps[h]
+                        
+                        g = -(h-tao)
+                        if tao + nStep < len(eps):
+                            g += vMap[nxtState[0], nxtState[1]]
+                        vMap[state[0],state[1]] += alpha*(g - vMap[state[0],state[1]])
+            d += 1
+            print(d)
+        return vMap
+    
     def tdEvl(self,epsLs, vMap):
         targetLs = []
         for i in range(len(epsLs)):
@@ -441,6 +496,46 @@ class gridworld():
                     targetLs.append(g)
         
         return targetLs
+    
+    def dp(self, qMap, delta = 0.01):
+        vMap = np.zeros([7,10])
+        d = 1
+        while d > delta:
+            d = 0
+            newMap = np.zeros([7,10])
+            for i in range(7):
+                for j in range(10):
+                    self.agentPos = np.array([i,j])
+                    qDict = qMap[i][j]
+                    maxq = max(qDict.values())
+                    aLs = []
+                    for a in qDict.keys():
+                        if qDict[a] == maxq:
+                            aLs.append(a)
+                            
+                    target = 0
+                    
+                    for act in self.aSpace:
+                        self.agentPos = np.array([i,j])
+                        nextPos, reward = self.nextPos(act)
+                        target += 0.1*(reward + vMap[nextPos[0],nextPos[1]])/4
+                        
+                    for act in aLs:
+                        self.agentPos = np.array([i,j])
+                        nextPos, reward = self.nextPos(act)
+                        target += 0.9*(reward + vMap[nextPos[0],nextPos[1]])/len(aLs)
+            
+
+                    if i==3 and j ==7:
+                        target = 0
+                    newMap[i,j] = target
+                    d = max(d,abs(target-vMap[i,j]))
+                    print(d)
+                    
+            vMap = newMap
+                    
+        return vMap
+                    
    
 def findIndex(stateLs):
     stateDic = {}
@@ -453,13 +548,15 @@ def findIndex(stateLs):
 
 if __name__ == '__main__':
     gw = gridworld()
-    #rLs = gw.qLearning(maxStep = 50000)
-    #qMap = gw.qMap
-    
+    rLs = gw.qLearning(maxStep = 30000)
+    qMap = gw.qMap
+    #vMap = gw.dp(qMap)
+    #trueVal =  vMap[3,0]
+    #%%
     #epsLs,aLsLs = gw.train(qMap,100)
     #np.save('epsLs100.npy',epsLs)
-    epsLs_train = np.load('epsLs50.npy', allow_pickle = True)
-    vMap = gw.tdPredict(epsLs_train)
+    epsLs_train = np.load('epsLs10.npy', allow_pickle = True)
+    vMap = gw.tdPredicte(epsLs_train)
     epsLs_evl = np.load('epsLs100.npy', allow_pickle = True)
     tgtLs = gw.mcEvl(epsLs_evl)
     #tgtTd = gw.tdEvl(epsLs,vMap)
@@ -469,5 +566,6 @@ if __name__ == '__main__':
     fig,ax = plt.subplots()
     plt.hist(tgtLs)
     ax.set_xlabel('G')
-    ax.set_title('Monte-Carlo: N=50')
+    ax.set_title('Monte-Carlo: N=1 (converged)')
+    ax.vlines(trueVal,0,110, color = 'black', linestyles = 'dashed')
     plt.show()
