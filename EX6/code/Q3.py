@@ -16,7 +16,7 @@ class gridworld():
     def __init__(self, randomGoal = False):
         self.map = np.array([[0,0,0,0,0,0,0,0,0],
                              [0,0,0,0,0,0,0,0,0],
-                             [0,1,1,1,1,1,1,1,1],
+                             [1,1,1,1,1,1,1,1,0],
                              [0,0,0,0,0,0,0,0,0],
                              [0,0,0,0,0,0,0,0,0],
                              [0,0,0,0,0,0,0,0,0]])
@@ -325,7 +325,7 @@ class gridworld():
         step = 0
         obs = {}
         rCum = 0
-        while step <3000:
+        while step <1000:
             step += 1
             pos = self.agentPos
             coin = random.random()
@@ -376,10 +376,10 @@ class gridworld():
                         aCount[i][j][key] += 1
                     
                     
-        self.map[2,-1] = 0 ## open wall
-        #self.map[2,0] = 0
+        self.map[2,-1] = 1 ## open wall
+        self.map[2,0] = 0
         
-        while step < 6000:
+        while step < 3000:
             step += 1
             pos = self.agentPos
             coin = random.random()
@@ -449,7 +449,7 @@ if __name__ == '__main__':
     ax.plot(rAvg)
     x = np.linspace(0,len(rAvg)-1,len(rAvg))
     ax.fill_between(x, rAvg-1.96*rStd/np.sqrt(len(tenItr)), rAvg+1.96*rStd/np.sqrt(len(tenItr)), alpha = 0.5)
-    ax.set_title('Dyna-Q+ Shortcut (n=250, k=0.001, no footnote)')
+    ax.set_title('Dyna-Q+ Blocking (n=250, k=0.001, no footnote)')
     ax.set_ylabel('Cumulative reward')
     ax.set_xlabel('steps')
 

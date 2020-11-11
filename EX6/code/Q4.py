@@ -15,7 +15,7 @@ class gridworld():
     def __init__(self, randomGoal = False):
         self.map = np.array([[0,0,0,0,0,0,0,0,0],
                              [0,0,0,0,0,0,0,0,0],
-                             [1,1,1,1,1,1,1,1,0],
+                             [0,1,1,1,1,1,1,1,1],
                              [0,0,0,0,0,0,0,0,0],
                              [0,0,0,0,0,0,0,0,0],
                              [0,0,0,0,0,0,0,0,0]])
@@ -298,7 +298,7 @@ class gridworld():
                         
         return rLs 
     
-    def dynaP2(self, e=0.2, alpha=0.1, maxStep = 6000, n = 50, gamma = 0.95, k = 0.001):
+    def dynaP2(self, e=0.2, alpha=0.1, maxStep = 6000, n = 250, gamma = 0.95, k = 0.001):
         aCount = [[ {'u':0,'d':0,'l':0,'r':0} for i in range(9)] for i in range(6)]
         rLs = []
         step = 0
@@ -361,7 +361,7 @@ class gridworld():
                         aCount[i][j][key] += 1
                     
                     
-        self.map[2,3] = 0 ## open wall
+        self.map[2,-1] = 0 ## open wall
         #self.map[2,0] = 0
         
         while step < 3000:
@@ -429,7 +429,7 @@ if __name__ == '__main__':
 
     for i in range(10): 
         gw = gridworld()
-        rLs = gw.dynaP()  
+        rLs = gw.dynaP2()  
         tenItr.append(rLs)
     #%%
     import matplotlib.pyplot as plt
@@ -442,7 +442,7 @@ if __name__ == '__main__':
     ax.plot(rAvg)
     x = np.linspace(0,len(rAvg)-1,len(rAvg))
     ax.fill_between(x, rAvg-1.96*rStd/np.sqrt(len(tenItr)), rAvg+1.96*rStd/np.sqrt(len(tenItr)), alpha = 0.5)
-    ax.set_title('Dyna-Q+ Shortcut (n=250, k=0.001, no footnote)')
+    ax.set_title('UCB Shortcut (n=50, k=0.001)')
     ax.set_ylabel('Cumulative reward')
     ax.set_xlabel('steps')
 
