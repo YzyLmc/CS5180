@@ -361,7 +361,7 @@ class gridworld():
                         aCount[i][j][key] += 1
                     
                     
-        self.map[2,-1] = 0 ## open wall
+        self.map[2,3] = 0 ## open wall
         #self.map[2,0] = 0
         
         while step < 3000:
@@ -442,7 +442,7 @@ if __name__ == '__main__':
     ax.plot(rAvg)
     x = np.linspace(0,len(rAvg)-1,len(rAvg))
     ax.fill_between(x, rAvg-1.96*rStd/np.sqrt(len(tenItr)), rAvg+1.96*rStd/np.sqrt(len(tenItr)), alpha = 0.5)
-    ax.set_title('UCB Shortcut (n=50, k=0.001)')
+    ax.set_title('UCB Shortcut (n=250, k=0.001)')
     ax.set_ylabel('Cumulative reward')
     ax.set_xlabel('steps')
 

@@ -107,7 +107,7 @@ class gridworld():
             self.agentPos = nextPos
             return self.agentPos, reward
         
-    def dynaP(self, e=0.2, alpha=0.5, maxStep = 6000, n = 50, gamma = 0.95, k = 0.001):
+    def dynaP(self, e=0.2, alpha=0.5, maxStep = 6000, n = 250, gamma = 0.95, k = 0.001):
         aCount = [[ {'u':0,'d':0,'l':0,'r':0} for i in range(9)] for i in range(6)]
         rLs = []
         step = 0
@@ -331,19 +331,25 @@ class gridworld():
                         
         return rLs 
 if __name__ == '__main__':
-    gw = gridworld()
-    rLs = gw.dynaP2()
+    tenItr = []
+
+    for i in range(10): 
+        gw = gridworld()
+        rLs = gw.dynaP()  
+        tenItr.append(rLs)
     #%%
     import matplotlib.pyplot as plt
+    rAvg = np.zeros(len(tenItr[0]))
+    rStd = np.zeros(len(tenItr[0]))
+    for i in range(len(tenItr[0])):
+        rAvg[i] = np.mean([tenItr[j][i] for j in range(len(tenItr))])
+        rStd[i] = np.std([tenItr[j][i] for j in range(len(tenItr))])
     fig,ax = plt.subplots()
-    plt.plot(rLs)
+    ax.plot(rAvg)
+    x = np.linspace(0,len(rAvg)-1,len(rAvg))
+    ax.fill_between(x, rAvg-1.96*rStd/np.sqrt(len(tenItr)), rAvg+1.96*rStd/np.sqrt(len(tenItr)), alpha = 0.5)
+    ax.set_title('UCB Shortcut (n=250, k=0.001)')
+    ax.set_ylabel('Cumulative reward')
     ax.set_xlabel('steps')
-    ax.set_title('Dyna-Q+')
+
     plt.show()
-    #%%
-    q = np.zeros([6,9])
-    for i in range(6):
-        for j in range(9):
-            q[i,j] = max(gw.qMap[i][j].values())
-            
-    print(q.round(2))
