@@ -15,7 +15,7 @@ class gridworld():
     def __init__(self, randomGoal = False):
         self.map = np.array([[0,0,0,0,0,0,0,0,0],
                              [0,0,0,0,0,0,0,0,0],
-                             [1,1,1,1,1,1,1,1,0],
+                             [0,1,1,1,1,1,1,1,1],
                              [0,0,0,0,0,0,0,0,0],
                              [0,0,0,0,0,0,0,0,0],
                              [0,0,0,0,0,0,0,0,0]])
@@ -361,8 +361,8 @@ class gridworld():
                         aCount[i][j][key] += 1
                     
                     
-        self.map[2,-1] = 1 ## open wall
-        self.map[2,0] = 0
+        self.map[2,-1] = 0 ## open wall
+        #self.map[2,0] = 0
         
         while step < 6000:
             step += 1
