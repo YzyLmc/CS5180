@@ -163,7 +163,7 @@ class gridworld():
                         aCount[i][j][key] += 1
                     
                     
-        self.map[2,-1] = 0 ## open wall
+        #self.map[2,-1] = 0 ## open wall
         #self.map[2,0] = 0
         
         while step < 6000:
@@ -252,8 +252,8 @@ class gridworld():
             self.model[repr(pos)][act] = nextPos
             ts = (pos, act, nextPos)
             obs.append(ts)
-            if len(obs) > 500:
-                obs = obs[-500:]
+            if len(obs) > 800:
+                obs = obs[-800:]
             for i in range(n):
                 ts = random.choice(obs)
                 state = ts[0]
@@ -307,8 +307,8 @@ class gridworld():
             self.model[repr(pos)][act] = nextPos
             ts = (pos, act, nextPos)
             obs.append(ts)
-            if len(obs) > 500:
-                obs = obs[-500:]
+            if len(obs) > 800:
+                obs = obs[-800:]
             for i in range(n):
                 ts = random.choice(obs)
                 state = ts[0]
@@ -348,8 +348,16 @@ if __name__ == '__main__':
     ax.plot(rAvg)
     x = np.linspace(0,len(rAvg)-1,len(rAvg))
     ax.fill_between(x, rAvg-1.96*rStd/np.sqrt(len(tenItr)), rAvg+1.96*rStd/np.sqrt(len(tenItr)), alpha = 0.5)
-    ax.set_title('UCB Shortcut (n=250, k=0.001)')
+    ax.set_title('Dyna-Q stochastic (n=250, k=0.001)')
     ax.set_ylabel('Cumulative reward')
     ax.set_xlabel('steps')
 
     plt.show()
+    #%%
+    q = np.zeros([6,9])
+    
+    for i in range(6):
+        for j in range(9):
+            q[i,j] = max(gw.qMap[i][j].values())
+            
+    print(q.round(2))

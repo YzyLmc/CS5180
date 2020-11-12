@@ -15,7 +15,7 @@ class gridworld():
     def __init__(self, randomGoal = False):
         self.map = np.array([[0,0,0,0,0,0,0,0,0],
                              [0,0,0,0,0,0,0,0,0],
-                             [0,1,1,1,1,1,1,1,1],
+                             [1,1,1,1,1,1,1,1,0],
                              [0,0,0,0,0,0,0,0,0],
                              [0,0,0,0,0,0,0,0,0],
                              [0,0,0,0,0,0,0,0,0]])
@@ -304,7 +304,7 @@ class gridworld():
         step = 0
         obs = {}
         rCum = 0
-        while step < 1000:
+        while step < 3000:
             step += 1
             pos = self.agentPos
 
@@ -361,10 +361,10 @@ class gridworld():
                         aCount[i][j][key] += 1
                     
                     
-        self.map[2,3] = 0 ## open wall
-        #self.map[2,0] = 0
+        self.map[2,-1] = 1 ## open wall
+        self.map[2,0] = 0
         
-        while step < 3000:
+        while step < 6000:
             step += 1
             pos = self.agentPos
             qDict = self.qMap[pos[0]][pos[1]]
