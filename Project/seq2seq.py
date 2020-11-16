@@ -500,7 +500,7 @@ def trainRL(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, de
 
     return compute_bleu(decoded_tokens.view(1,-1).clone().tolist(),target_tensor.view(1,-1).clone().tolist())
 
-def trainItersRL(encoder, decoder, n_iters, print_every=1000, plot_every=100, learning_rate=0.01):
+def trainItersRL(encoder, decoder, n_iters, print_every=1000, plot_every=100, learning_rate=0.04):
     start = time.time()
     plot_losses = []
     print_loss_total = 0  # Reset every print_every
@@ -536,7 +536,7 @@ def trainItersRL(encoder, decoder, n_iters, print_every=1000, plot_every=100, le
 
     showPlot(plot_losses)
 #with torch.autograd.set_detect_anomaly(True):
-trainItersRL(encoder1, decoder1, 10000, print_every=500)
+trainItersRL(encoder1, decoder1, 20000, print_every=500)
 #%%
 evaluateRandomly(encoder1, decoder1)
 
