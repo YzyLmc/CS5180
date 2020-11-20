@@ -358,11 +358,11 @@ def evaluateRandomly(encoder, decoder, n=10):
         print('<', output_sentence)
         print('')
 
-hidden_size = 256
+hidden_size = 64
 encoder1 = EncoderRNN(input_lang.n_words, hidden_size).to(device)
 decoder1 = DecoderRNN(hidden_size, output_lang.n_words).to(device)
 #%%
-trainIters(encoder1, decoder1, 1000, print_every= 100)
+trainIters(encoder1, decoder1, 5000, print_every= 100)
 
 evaluateRandomly(encoder1, decoder1)
 #%%
