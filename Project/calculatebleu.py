@@ -4,6 +4,7 @@ import os
 import math
 import operator
 import json
+from functools import reduce
 
 
 
@@ -36,28 +37,28 @@ def count_ngram(candidate, references, n):
         for reference in references:
             ref_sentence = reference[si]
             ngram_d = {}
-            words = ref_sentence.strip().split()
+            words = ref_sentence
             ref_lengths.append(len(words))
             limits = len(words) - n + 1
             # loop through the sentance consider the ngram length
             for i in range(limits):
-                ngram = ' '.join(words[i:i+n]).lower()
-                if ngram in ngram_d.keys():
-                    ngram_d[ngram] += 1
+                ngram = words[i:i+n]
+                if repr(ngram) in ngram_d.keys():
+                    ngram_d[repr(ngram)] += 1
                 else:
-                    ngram_d[ngram] = 1
+                    ngram_d[repr(ngram)] = 1
             ref_counts.append(ngram_d)
         # candidate
         cand_sentence = candidate[si]
         cand_dict = {}
-        words = cand_sentence.strip().split()
+        words = cand_sentence
         limits = len(words) - n + 1
         for i in range(0, limits):
-            ngram = ' '.join(words[i:i + n]).lower()
-            if ngram in cand_dict:
-                cand_dict[ngram] += 1
+            ngram = words[i:i + n]
+            if repr(ngram) in cand_dict:
+                cand_dict[repr(ngram)] += 1
             else:
-                cand_dict[ngram] = 1
+                cand_dict[repr(ngram)] = 1
         clipped_count += clip_count(cand_dict, ref_counts)
         count += limits
         r += best_length_match(ref_lengths, len(words))
@@ -67,6 +68,7 @@ def count_ngram(candidate, references, n):
     else:
         pr = float(clipped_count) / count
     bp = brevity_penalty(c, r)
+    #bp = 1
     return pr, bp
 
 
@@ -105,18 +107,25 @@ def brevity_penalty(c, r):
 
 def geometric_mean(precisions):
     return (reduce(operator.mul, precisions)) ** (1.0 / len(precisions))
+    #esum = 0
+    #for pr in precisions:
+    #    esum += math.log(pr)/len(precisions)
+    #    print(esum)    
+    #return math.exp(esum)
 
 
 def BLEU(candidate, references):
     precisions = []
-    for i in range(4):
+    for i in range(3):
         pr, bp = count_ngram(candidate, references, i+1)
         precisions.append(pr)
+    #print(precisions)
     bleu = geometric_mean(precisions) * bp
     return bleu
 
 if __name__ == "__main__":
-    candidate, references = fetch_data(sys.argv[1], sys.argv[2])
+    candidate = [[1,2,3]]
+    references = [[[1,2,3,4,9]]]
     bleu = BLEU(candidate, references)
     print (bleu)
     out = open('bleu_out.txt', 'w')

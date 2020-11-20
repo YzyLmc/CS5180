@@ -18,6 +18,8 @@ import torch
 import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
+import calculatebleu
+from calculatebleu import BLEU
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -95,7 +97,9 @@ eng_prefixes = (
 
 
 def filterPair(p):
-    return len(p[0].split(' ')) < MAX_LENGTH and \
+    return len(p[0].split(' ')) > 2 and \
+        len(p[1].split(' ')) > 2 and \
+        len(p[0].split(' ')) < MAX_LENGTH and \
         len(p[1].split(' ')) < MAX_LENGTH and \
         p[1].startswith(eng_prefixes)
 
@@ -199,12 +203,16 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
     decoder_hidden = encoder_hidden
 
     use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
-
+    
+    decoded_tokens = torch.zeros(target_length)
     if use_teacher_forcing:
         # Teacher forcing: Feed the target as the next input
         for di in range(target_length):
             decoder_output, decoder_hidden = decoder(
                 decoder_input, decoder_hidden)
+            topv, topi = decoder_output.topk(1)
+            #print(decoder_output)
+            decoded_tokens[di] = topi.squeeze().detach().clone()
             loss += criterion(decoder_output, target_tensor[di])
             decoder_input = target_tensor[di]  # Teacher forcing
 
@@ -215,20 +223,20 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
                 decoder_input, decoder_hidden)
             topv, topi = decoder_output.topk(1)
             #print(decoder_output)
-            
+            decoded_tokens[di] = topi.squeeze().detach().clone()
             decoder_input = topi.squeeze().detach()  # detach from history as input
 
             loss += criterion(decoder_output, target_tensor[di])
             if decoder_input.item() == EOS_token:
                 break
-
+    #print(loss)
     loss.backward()
 
     encoder_optimizer.step()
     decoder_optimizer.step()
 
-    return loss.item() / target_length
-
+    #return loss.item() / target_length
+    return BLEU(decoded_tokens.view(1,-1).int().clone().tolist(),target_tensor.view(1,1,-1).int().clone().tolist())
 import time
 import math
 
@@ -280,10 +288,18 @@ def trainIters(encoder, decoder, n_iters, print_every=1000, plot_every=100, lear
             plot_losses.append(plot_loss_avg)
             plot_loss_total = 0
 
-    showPlot(plot_losses)
+    #showPlot(plot_losses)
+    print(plot_losses)
+    fig, ax = plt.subplots()
+    # this locator puts ticks at regular intervals
+    #loc = ticker.MultipleLocator(base=0.2)
+    #ax.yaxis.set_major_locator(loc)
+    ax.plot(plot_losses)
+    ax.set_ylabel('BLEU score')
+    plt.show()
     
 import matplotlib.pyplot as plt
-plt.switch_backend('agg')
+#plt.switch_backend('GTKAgg')
 import matplotlib.ticker as ticker
 import numpy as np
 
@@ -295,6 +311,8 @@ def showPlot(points):
     loc = ticker.MultipleLocator(base=0.2)
     ax.yaxis.set_major_locator(loc)
     plt.plot(points)
+    plt.show()
+    fig.show()
     #%%
     
 def evaluate(encoder, decoder, sentence, max_length=MAX_LENGTH):
@@ -343,12 +361,13 @@ def evaluateRandomly(encoder, decoder, n=10):
 hidden_size = 256
 encoder1 = EncoderRNN(input_lang.n_words, hidden_size).to(device)
 decoder1 = DecoderRNN(hidden_size, output_lang.n_words).to(device)
-
-trainIters(encoder1, decoder1, 15000, print_every=500)
+#%%
+trainIters(encoder1, decoder1, 1000, print_every= 100)
 
 evaluateRandomly(encoder1, decoder1)
-
 #%%
+
+
 from six.moves import xrange
 from six.moves import zip
 from collections import defaultdict
@@ -426,9 +445,11 @@ def compute_bleu(reference_corpus,
     bp = math.exp(1 - 1. / ratio) if ratio < 1.0 else 1.0
   bleu = geo_mean * bp
   return np.float32(bleu)
-#a = [[2.,16.,102.,294.,294.,4.]]
-#b = [[2,3,158,294,468,4,1]]
+#a = [[1,2,3,4,5,6]]
+#b = [[1,2,3]]
 #print(compute_bleu(a,b))
+#%%
+
   
 def trainRL(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, decoder_optimizer, max_length=MAX_LENGTH):
     encoder_hidden = encoder.initHidden()
@@ -442,9 +463,9 @@ def trainRL(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, de
     encoder_outputs = torch.zeros(max_length, encoder.hidden_size, device=device)
 
     #loss = 0
-    fake_encoder = deepcopy(encoder)
+    #fake_encoder = deepcopy(encoder)
     for ei in range(input_length):
-        encoder_output, encoder_hidden = fake_encoder(
+        encoder_output, encoder_hidden = encoder(
             input_tensor[ei], encoder_hidden)
         encoder_outputs[ei] = encoder_output[0, 0]
 
@@ -456,51 +477,60 @@ def trainRL(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, de
     decoded_tokens = torch.zeros(target_length)
     softmax = nn.Softmax(dim=1)
     
-    fake_decoder = deepcopy(decoder)
+    #fake_decoder = deepcopy(decoder)
     
     for di in range(target_length):
-        decoder_output, decoder_hidden  = fake_decoder(
+        decoder_output, decoder_hidden  = decoder(
             decoder_input, decoder_hidden)
-        #topv, topi = decoder_output.topk(1)
+        topv, topi = decoder_output.topk(1)
         #decoder_input = topi.squeeze().detach()  # detach from history as input
+        #print(decoder_output)
         soft = softmax(decoder_output)
         #print(soft)
+        #topi = soft.multinomial(num_samples=1, replacement=True)
+        #print(topi)
+        #print(idx)
         topv, topi = soft.topk(1)
+        #topv = soft[topi]
+        #print(topi)
+        #print(topv1, topi1)
         output_soft.append(topv)
         decoded_tokens[di] = topi.squeeze().detach().clone()
         decoder_input = topi.squeeze().detach().clone()  # detach from history as input
         #loss += criterion(decoder_output, target_tensor[di])
         if decoder_input.item() == EOS_token:
             break
-        
-    for i in range(len(output_soft)):
+    
+    #try: 
+    loss = 0  
+    #print(soft)
+    for i in range(len(output_soft)-1):
         
         G = 0
-        for j in range(len(output_soft)-i-1,target_length):
+        for j in range(len(output_soft)-i-1,len(output_soft)):
             try:
-                #print(decoded_tokens[:j].view(1,-1),target_tensor.view(1,-1))
+                #print(decoded_tokens[:j].view(1,-1).tolist(),target_tensor.view(1,1,-1).tolist())
                 #print(compute_bleu(decoded_tokens[:j].view(1,-1).tolist(),target_tensor.view(1,-1).tolist()))
-                G = G + compute_bleu(decoded_tokens[:j].view(1,-1).clone().tolist(),target_tensor.view(1,-1).clone().tolist()) - \
-                    compute_bleu(decoded_tokens[:j-1].view(1,-1).clone().tolist(),target_tensor.view(1,-1).clone().tolist())
+                G = G + BLEU(decoded_tokens[:j].view(1,-1).int().clone().tolist(),target_tensor.view(1,1,-1).int().clone().tolist()) - BLEU(decoded_tokens[:j-1].view(1,-1).int().clone().tolist(),target_tensor.view(1,1,-1).int().clone().tolist())
             except:
                 #print('except')
-                G =  G + compute_bleu(decoded_tokens[:j].view(1,-1).clone().tolist(),target_tensor.view(1,-1).clone().tolist())
-        #print(G)
+                G =  G + BLEU(decoded_tokens[:j].view(1,-1).int().clone().tolist(),target_tensor.view(1,1,-1).int().clone().tolist())
+        #print(G,i)
         #print(len(output_soft))
         #print(len(decoded_tokens))
-        loss = - G * torch.log(output_soft[len(output_soft)-i-1])   
-
-        loss.backward(retain_graph=True)
-
-        encoder_optimizer.step()
-        decoder_optimizer.step()
+        #print(output_soft[len(output_soft)-i-1])        
+        loss += - G * torch.log(output_soft[len(output_soft)-i-1])   
         
-        encoder_optimizer.zero_grad()
-        decoder_optimizer.zero_grad()
+        #print(loss)
+    loss.backward(retain_graph=True)
 
-    return compute_bleu(decoded_tokens.view(1,-1).clone().tolist(),target_tensor.view(1,-1).clone().tolist())
+    encoder_optimizer.step()
+    decoder_optimizer.step()
+    #except:
+    #    1
 
-def trainItersRL(encoder, decoder, n_iters, print_every=1000, plot_every=100, learning_rate=0.04):
+    return BLEU(decoded_tokens.view(1,-1).int().clone().tolist(),target_tensor.view(1,1,-1).int().clone().tolist())
+def trainItersRL(encoder, decoder, n_iters, print_every=1000, plot_every=200, learning_rate=0.003):
     start = time.time()
     plot_losses = []
     print_loss_total = 0  # Reset every print_every
@@ -534,9 +564,18 @@ def trainItersRL(encoder, decoder, n_iters, print_every=1000, plot_every=100, le
             plot_losses.append(plot_loss_avg)
             plot_loss_total = 0
 
-    showPlot(plot_losses)
+    #showPlot(plot_losses)
+    #print(plot_losses)
+    fig, ax = plt.subplots()
+    # this locator puts ticks at regular intervals
+    #loc = ticker.MultipleLocator(base=0.2)
+    #ax.yaxis.set_major_locator(loc)
+    ax.plot(plot_losses)
+    ax.set_ylabel('BLEU score')
+    plt.show()
+    
 #with torch.autograd.set_detect_anomaly(True):
-trainItersRL(encoder1, decoder1, 20000, print_every=500)
+trainItersRL(encoder1, decoder1, 10000, print_every=200)
 #%%
 evaluateRandomly(encoder1, decoder1)
 
