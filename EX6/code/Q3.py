@@ -178,7 +178,7 @@ class gridworld():
         step = 0
         obs = {}
         rCum = 0
-        while step < 3000:
+        while step < 1000:
             step += 1
             pos = self.agentPos
             coin = random.random()
@@ -255,7 +255,7 @@ class gridworld():
         self.map[2,-1] = 0 ## open wall
         #self.map[2,0] = 0
         
-        while step < 6000:
+        while step < 3000:
             step += 1
             pos = self.agentPos
             coin = random.random()
@@ -434,9 +434,9 @@ class gridworld():
 if __name__ == '__main__':
     tenItr = []
 
-    for i in range(10): 
+    for i in range(1): 
         gw = gridworld()
-        rLs = gw.dynaP1()  
+        rLs = gw.dynaP()  
         tenItr.append(rLs)
     #%%
     import matplotlib.pyplot as plt
