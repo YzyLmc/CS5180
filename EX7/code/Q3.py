@@ -37,7 +37,7 @@ class gridworld():
         self.qMap = [[ {'u':0,'d':0,'l':0,'r':0} for i in range(11)] for i in range(11)]
         self.w = np.zeros([121, 4])
         self.w2 = np.zeros([4,3])
-        #self.w2 = np.zeros([4,3])
+        self.w2 = np.zeros([4,5])
         #self.goalPos = np.array([0,0])
         
         
@@ -239,7 +239,7 @@ class gridworld():
         if coin < e:
             act = random.choice([0,1,2,3])
         else:
-            stateIdx = self.tabular(self.agentPos)
+            stateIdx = self.agg1(self.agentPos)
             qLs = []
             for i in range(4):
                 qi = self.w[stateIdx,i] * 1
@@ -254,9 +254,9 @@ class gridworld():
         itr = 0
         while repr(self.agentPos) != repr(self.goalPos) and itr < timeout:
 
-            stateIdx = self.tabular(self.agentPos)   
+            stateIdx = self.agg3(self.agentPos)   
             pos, reward = self.nextPos(self.aSpace[int(act)])
-            newIdx = self.tabular(self.agentPos)
+            newIdx = self.agg3(self.agentPos)
             coin = random.random()
             if coin < e:
                 act1 = random.choice([0,1,2,3])
@@ -278,7 +278,7 @@ class gridworld():
             itr += 1   
         return itr 
     
-    def oneEpsLF(self,e = 0.1, alpha = 0.05, gamma = 0.95, timeout = 800):
+    def oneEpsLF(self,e = 0.1, alpha = 0.08, gamma = 0.95, timeout = 800):
         self.resetAgent()
         coin = random.random()
         if coin < e:
@@ -287,14 +287,14 @@ class gridworld():
             
             qLs = []
             for i in range(4):
-                vi = [self.agentPos[0], self.agentPos[1],1]/np.linalg.norm([self.agentPos[0], self.agentPos[1],1])
+                vi = [self.agentPos[0], self.agentPos[1],1,np.sqrt(self.agentPos[0]*self.agentPos[1]),np.sqrt(abs(10-self.agentPos[0])+abs(10-self.agentPos[1]))]/np.linalg.norm([self.agentPos[0], self.agentPos[1],1,np.sqrt(self.agentPos[0]*self.agentPos[1]),np.sqrt(abs(10-self.agentPos[0])+abs(10-self.agentPos[1]))])
                 qi = np.dot(self.w2[i],vi)
                 qLs.append(qi)
             
             qmax = max(qLs)
             actLs = []
             for i in range(4):
-                vi = [self.agentPos[0],self.agentPos[1],1]/np.linalg.norm([self.agentPos[0], self.agentPos[1],1])
+                vi = [self.agentPos[0],self.agentPos[1],1,np.sqrt(self.agentPos[0]*self.agentPos[1]),np.sqrt(abs(10-self.agentPos[0])+abs(10-self.agentPos[1]))]/np.linalg.norm([self.agentPos[0], self.agentPos[1],1,np.sqrt(self.agentPos[0]*self.agentPos[1]),np.sqrt(abs(10-self.agentPos[0])+abs(10-self.agentPos[1]))])
                 qi = np.dot(self.w2[i],vi)
                 #print(qi,i)
                 if qi == qmax:
@@ -304,7 +304,7 @@ class gridworld():
         itr = 0
         while repr(self.agentPos) != repr(self.goalPos) and itr < timeout:
 
-            stateVec = [copy(self.agentPos[0]),copy(self.agentPos[1]),1]/np.linalg.norm([copy(self.agentPos[0]), copy(self.agentPos[1]),1])
+            stateVec = [copy(self.agentPos[0]),copy(self.agentPos[1]),1,copy(np.sqrt(self.agentPos[0]*self.agentPos[1])),copy(np.sqrt(abs(10-self.agentPos[0])+abs(10-self.agentPos[1])))]/np.linalg.norm([copy(self.agentPos[0]), copy(self.agentPos[1]),1,copy(np.sqrt(self.agentPos[0]*self.agentPos[1])),copy(np.sqrt(abs(10-self.agentPos[0])+abs(10-self.agentPos[1])))])
             newState, reward = self.nextPos(self.aSpace[int(act)])
             coin = random.random()
             if coin < e:
@@ -312,13 +312,13 @@ class gridworld():
             else:
                 qLs = []
                 for i in range(4):
-                    vi = [copy(self.agentPos[0]), copy(self.agentPos[1]),1]/np.linalg.norm([self.agentPos[0], self.agentPos[1],1])
+                    vi = [copy(self.agentPos[0]), copy(self.agentPos[1]),1, np.sqrt(self.agentPos[0]*self.agentPos[1]),np.sqrt(abs(10-self.agentPos[0])+abs(10-self.agentPos[1]))]/np.linalg.norm([self.agentPos[0], self.agentPos[1],1,np.sqrt(self.agentPos[0]*self.agentPos[1]),np.sqrt(abs(10-self.agentPos[0])+abs(10-self.agentPos[1]))])
                     qi = np.dot(self.w2[i],vi)
                     qLs.append(qi)
                 qmax = max(qLs)
                 actLs = []
                 for i in range(4):
-                    vi = [self.agentPos[0], self.agentPos[1],1]/np.linalg.norm([self.agentPos[0], self.agentPos[1],1])
+                    vi = [self.agentPos[0], self.agentPos[1],1,np.sqrt(self.agentPos[0]*self.agentPos[1]),np.sqrt(abs(10-self.agentPos[0])+abs(10-self.agentPos[1]))]/np.linalg.norm([self.agentPos[0], self.agentPos[1],1,np.sqrt(self.agentPos[0]*self.agentPos[1]),np.sqrt(abs(10-self.agentPos[0])+abs(10-self.agentPos[1]))])
                     qi = np.dot(self.w2[i],vi)
                     #print(qi, qmax, qi ==qmax)
                     if qi == qmax:
@@ -328,7 +328,7 @@ class gridworld():
                 act1 = random.choice(actLs)
                 
             #print(act1)  
-            newVec =[copy(self.agentPos[0]),copy(self.agentPos[1]),1]/np.linalg.norm([self.agentPos[0], self.agentPos[1],1])
+            newVec =[copy(self.agentPos[0]),copy(self.agentPos[1]),1,np.sqrt(self.agentPos[0]*self.agentPos[1]),np.sqrt(abs(10-self.agentPos[0])+abs(10-self.agentPos[1]))]/np.linalg.norm([self.agentPos[0], self.agentPos[1],1,np.sqrt(self.agentPos[0]*self.agentPos[1]),np.sqrt(abs(10-self.agentPos[0])+abs(10-self.agentPos[1]))])
             q = np.dot(self.w2[act],stateVec)
             q1 = np.dot(self.w2[act1],newVec)
             if repr(self.agentPos) == repr(self.goalPos):
@@ -343,11 +343,11 @@ class gridworld():
             #print(newVec,stateVec)
         return itr 
     
-    def sarsa(self, eps = 100):
+    def sarsa(self, eps = 500):
         e = 0
         epsLs = []
         while e < eps:
-            n_step = self.oneEps()
+            n_step = self.oneEpsLF()
             epsLs.append(n_step)
             e += 1
         
@@ -356,7 +356,7 @@ class gridworld():
 if __name__ == '__main__':
     tenItr = []
 
-    for i in range(10): 
+    for i in range(5): 
         gw = gridworld()
         epsLs = gw.sarsa()  
         avgLs = [0] * len(epsLs)
@@ -377,7 +377,7 @@ if __name__ == '__main__':
     ax.plot(rAvg)
     x = np.linspace(0,len(rAvg)-1,len(rAvg))
     ax.fill_between(x, rAvg-1.96*rStd/np.sqrt(len(tenItr)), rAvg+1.96*rStd/np.sqrt(len(tenItr)), alpha = 0.5)
-    ax.set_title('tabular equivalent')
+    ax.set_title('[x,y,1,x*y,manhattan distance]')
     ax.set_xlabel('episodes')
     ax.set_ylabel('steps per episode')
     #ax.hlines(pow(0.99,20),0,len(rAvg), color = 'black', linestyles = 'dashed')

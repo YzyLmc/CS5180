@@ -15,10 +15,10 @@ import random
 class mntCar():
     
     def __init__(self, t_num = 4096):
-        self.aSpace = [2,0,1]
+        self.aSpace = [0,1,2]
         self.w = np.zeros(t_num)
         self.env = gym.make('MountainCar-v0')
-        self.env._max_episode_steps = 600
+        self.env._max_episode_steps = 500
         self.iht = IHT(t_num)
         
     
@@ -26,7 +26,7 @@ class mntCar():
         #print(state,a)
         return tiles(self.iht, 8, [8*state[0]/1.7, 8*state[1]/0.14], [a])
     
-    def oneEps(self, epsilon = 0, alpha = 0.5/8, gamma = 0.95):
+    def oneEps(self, alpha = 0.1/8, gamma = 1):
         self.env.reset()
         done = False
         state = self.env.state
@@ -51,7 +51,7 @@ class mntCar():
         #print(qi,qmax)
         #print(actLs)
         act = random.choice(actLs)
-            
+        #print(act)    
         itr = 0
         while done == False:               
             agg = self.totile(state, act)
@@ -68,6 +68,7 @@ class mntCar():
                 #print(self.w)
                 for tile in agg:
                     self.w[tile] += alpha*(reward - q)
+                    
                 
             
             else:
@@ -119,18 +120,14 @@ class mntCar():
 if __name__ == '__main__':
     mc = mntCar()
     epsLs = mc.sarsa()
-    avgLs = [0] * len(epsLs)
-    for i in range(len(epsLs)):
-        stIdx = max(0,i-100)
-        avg = sum(epsLs[stIdx:i+1])/(i + 1 -stIdx)
-        avgLs[i] = avg
+
     import matplotlib.pyplot as plt
     
     fig,ax = plt.subplots()
 
     ax.set_xlabel('episodes')
     ax.set_ylabel('steps per episode')
-    ax.plot(avgLs)
+    ax.plot(epsLs)
     plt.show()
 #%%    
 from mpl_toolkits.mplot3d import Axes3D
@@ -142,6 +139,8 @@ def surface_plot (matrix, **kwargs):
     ax = fig.add_subplot(111, projection='3d')
     surf = ax.plot_surface(x, y, matrix, **kwargs)
     return (fig, ax, surf)
+xi = np.arange(-1.2,0.5,1.7/100)
+yi = np.arange(-0.07,0.07,0.14/100)
 estimate = np.zeros([100,100])
 stepi = 1.7/100
 stepj = 0.14/100
@@ -149,19 +148,22 @@ for i in range(100):
     for j in range(100):
         emax = -1000
         for a in mc.aSpace:                  
-            agg = mc.totile([stepi*i,stepj*j],a)
+            agg = mc.totile([-1.2 + stepi*i,-0.07 + stepj*j],a)
             q1 = 0
             for tile in agg:
                 q1 += mc.w[tile]
             emax = max(emax,-q1)
         estimate[i,j] = emax
+        #print([stepi*i,stepj*j])
 (fig, ax, surf) = surface_plot(estimate, cmap=plt.cm.coolwarm)
 
 fig.colorbar(surf)
 
-ax.set_xlabel('n_Cars(A)')
-ax.set_ylabel('n_Cars(B)')
-ax.set_zlabel('values')
+ax.set_xlabel('Position')
+ax.set_ylabel('Velocity')
+#ax.set_xlim(-1.2,0.5)
+#ax.set_ylim(-0.07,0.07)
+ax.set_zlabel('cost to go')
 
 plt.show()  
     
