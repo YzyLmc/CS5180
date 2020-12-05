@@ -116,7 +116,7 @@ def geometric_mean(precisions):
 
 def BLEU(candidate, references):
     precisions = []
-    for i in range(3):
+    for i in range(2):
         pr, bp = count_ngram(candidate, references, i+1)
         precisions.append(pr)
     #print(precisions)
@@ -124,8 +124,8 @@ def BLEU(candidate, references):
     return bleu
 
 if __name__ == "__main__":
-    candidate = [[1,2,3]]
-    references = [[[1,2,3,4,9]]]
+    candidate = [[14, 40,42]] 
+    references =  [[[14, 40, 42, 44, 1283, 518, 234, 4, 1]]]
     bleu = BLEU(candidate, references)
     print (bleu)
     out = open('bleu_out.txt', 'w')
