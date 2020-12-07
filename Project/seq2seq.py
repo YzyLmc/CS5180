@@ -244,7 +244,7 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
     decoder_optimizer.step()
     #print(target_tensor.view(1,-1).int().tolist(),decoded_tokens.int().tolist())
     #return loss.item() / target_length
-    return BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens.int().tolist(),weights=(0.5,0.5))
+    return BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens.int().tolist(),weights=(1/3,1/3,1/3))
 import time
 import math
 
@@ -387,7 +387,7 @@ def evaluateN(encoder, decoder, sentence, ref, max_length=MAX_LENGTH):
                 decoded_words.append(topi.item())
             decoder_input = topi.squeeze().detach()
         #print(decoded_words, target_tensor.view(1,1,-1).int().tolist())
-        return BLEU(target_tensor.view(1,-1).int().tolist(),decoded_words,weights=(1/4,1/4,1/4,1/4))
+        return BLEU(target_tensor.view(1,-1).int().tolist(),decoded_words,weights=(1/3,1/3,1/3))
     
 def evaluateRandomly(encoder, decoder, n=10):
     for i in range(n):
@@ -412,7 +412,7 @@ hidden_size = 64
 encoder1 = EncoderRNN(input_lang.n_words, hidden_size).to(device)
 decoder1 = DecoderRNN(hidden_size, output_lang.n_words).to(device)
 #%%
-trainIters(encoder1, decoder1, 5000, print_every= 500)
+trainIters(encoder1, decoder1, 500000, print_every= 1000)
 
 evaluateRandomly(encoder1, decoder1)
 #%%
