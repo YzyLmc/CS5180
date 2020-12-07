@@ -86,7 +86,7 @@ def readLangs(lang1, lang2, reverse=False):
 
     return input_lang, output_lang, pairs
 
-MAX_LENGTH = 25
+MAX_LENGTH = 10
 
 eng_prefixes = (
     "i am ", "i m ",
@@ -125,6 +125,9 @@ def prepareData(lang1, lang2, reverse=False):
 
 
 input_lang, output_lang, pairs = prepareData('eng', 'fra', True)
+data_num = len(pairs)
+pairs_train = pairs[:int(0.8*data_num)]
+pairs_test = pairs[int(0.8*data_num):]
 print(random.choice(pairs))
 
 class EncoderRNN(nn.Module):
@@ -239,7 +242,7 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
 
     encoder_optimizer.step()
     decoder_optimizer.step()
-    print(target_tensor.view(1,-1).int().tolist(),decoded_tokens.int().tolist())
+    #print(target_tensor.view(1,-1).int().tolist(),decoded_tokens.int().tolist())
     #return loss.item() / target_length
     return BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens.int().tolist(),weights=(0.5,0.5))
 import time
@@ -267,7 +270,7 @@ def trainIters(encoder, decoder, n_iters, print_every=1000, plot_every=100, lear
 
     encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
-    training_pairs = [tensorsFromPair(random.choice(pairs))
+    training_pairs = [tensorsFromPair(random.choice(pairs_train))
                       for i in range(n_iters)]
     #print(training_pairs)
     criterion = nn.NLLLoss()
@@ -384,11 +387,11 @@ def evaluateN(encoder, decoder, sentence, ref, max_length=MAX_LENGTH):
                 decoded_words.append(topi.item())
             decoder_input = topi.squeeze().detach()
         #print(decoded_words, target_tensor.view(1,1,-1).int().tolist())
-        return BLEU(target_tensor.view(1,-1).int().tolist(),decoded_words,weights=(0.5,0.5))
+        return BLEU(target_tensor.view(1,-1).int().tolist(),decoded_words,weights=(1/4,1/4,1/4,1/4))
     
 def evaluateRandomly(encoder, decoder, n=10):
     for i in range(n):
-        pair = random.choice(pairs)
+        pair = random.choice(pairs_test)
         print('>', pair[0])
         print('=', pair[1])
         output_words = evaluate(encoder, decoder, pair[0])
@@ -399,7 +402,7 @@ def evaluateRandomly(encoder, decoder, n=10):
 def evaluateNRandomly(encoder, decoder, n=10):
     bleuLs = []
     for i in range(n):
-        pair = random.choice(pairs)
+        pair = random.choice(pairs_test)
         bleui = evaluateN(encoder, decoder, pair[0], pair[1])
         bleuLs.append(bleui)
     
@@ -465,7 +468,7 @@ def trainRL(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, de
         try:
             lossSL += criterion(decoder_output, target_tensor[di])
         except:
-            lossSL += criterion(decoder_output,torch.tensor([2],device = device))
+            lossSL += criterion(decoder_output,torch.tensor([1],device = device))
         #lossSL += criterion(decoder_output, target_tensor[di])
         if decoder_input.item() == EOS_token:
             decoded_tokens = decoded_tokens[:di + 1]
@@ -480,9 +483,9 @@ def trainRL(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, de
                 
                 #print(target_tensor.view(1,-1).int().tolist(),decoded_tokens[:j].int().tolist())
                 #print(BLEU(decoded_tokens[:j].view(1,-1).int().tolist(),target_tensor.view(1,1,-1).int().tolist()) - BLEU(decoded_tokens[:j-1].view(1,-1).int().tolist(),target_tensor.view(1,1,-1).int().tolist()))
-                G = G + BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens[:j].int().tolist(),weights=(0.5,0.5)) - BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens[:j-1].int().tolist(),weights=(0.5,0.5))
+                G = G + BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens[:j].int().tolist(),weights=(1/4,1/4,1/4,1/4)) - BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens[:j-1].int().tolist(),weights=(1/4,1/4,1/4,1/4))
             else:
-                G =  G + BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens[:j].int().tolist(),weights=(0.5,0.5))
+                G =  G + BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens[:j].int().tolist(),weights=(1/4,1/4,1/4,1/4))
             
       
         lossRL += - G * torch.log(output_soft[len(output_soft)-i-1])   
@@ -497,7 +500,7 @@ def trainRL(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, de
     #except:
     #    1
     #print(target_tensor.view(1,-1).int().tolist(),decoded_tokens.int().tolist())
-    return BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens.int().tolist(),weights=(0.5,0.5))
+    return BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens.int().tolist(),weights=(1/4,1/4,1/4,1/4))
 def trainItersRL(encoder, decoder, n_iters, print_every=1000, plot_every=200, learning_rate=0.01):
     start = time.time()
     plot_losses = []
@@ -506,7 +509,7 @@ def trainItersRL(encoder, decoder, n_iters, print_every=1000, plot_every=200, le
 
     encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
-    training_pairs = [tensorsFromPair(random.choice(pairs))
+    training_pairs = [tensorsFromPair(random.choice(pairs_train))
                       for i in range(n_iters)]
     #print(training_pairs)
     criterion = nn.NLLLoss()
@@ -517,7 +520,7 @@ def trainItersRL(encoder, decoder, n_iters, print_every=1000, plot_every=200, le
         target_tensor = training_pair[1]
 
         loss = trainRL(input_tensor, target_tensor, encoder,
-                     decoder, encoder_optimizer, decoder_optimizer,criterion,alpha = 1)
+                     decoder, encoder_optimizer, decoder_optimizer,criterion,alpha = 0.3)
         print_loss_total += loss
         plot_loss_total += loss
 
@@ -543,7 +546,7 @@ def trainItersRL(encoder, decoder, n_iters, print_every=1000, plot_every=200, le
     plt.show()
     
 #with torch.autograd.set_detect_anomaly(True):
-trainItersRL(encoder1, decoder1, 5000, print_every=200)
+trainItersRL(encoder1, decoder1, 150000, print_every=1000)
 #%%
 evaluateNRandomly(encoder1, decoder1,n = 5000)
 #%%
