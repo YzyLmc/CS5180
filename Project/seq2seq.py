@@ -303,7 +303,7 @@ def trainIters(encoder, decoder, n_iters, print_every=1000, plot_every=100, lear
     #loc = ticker.MultipleLocator(base=0.2)
     #ax.yaxis.set_major_locator(loc)
     ax.plot(plot_losses)
-    ax.set_ylabel('BLEU score SL')
+    ax.set_title('BLEU score SL')
     plt.show()
     
 import matplotlib.pyplot as plt
@@ -412,7 +412,7 @@ hidden_size = 64
 encoder1 = EncoderRNN(input_lang.n_words, hidden_size).to(device)
 decoder1 = DecoderRNN(hidden_size, output_lang.n_words).to(device)
 #%%
-trainIters(encoder1, decoder1, 500000, print_every= 1000)
+trainIters(encoder1, decoder1, 1000000, print_every= 5000)
 
 evaluateRandomly(encoder1, decoder1)
 #%%
@@ -483,9 +483,9 @@ def trainRL(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, de
                 
                 #print(target_tensor.view(1,-1).int().tolist(),decoded_tokens[:j].int().tolist())
                 #print(BLEU(decoded_tokens[:j].view(1,-1).int().tolist(),target_tensor.view(1,1,-1).int().tolist()) - BLEU(decoded_tokens[:j-1].view(1,-1).int().tolist(),target_tensor.view(1,1,-1).int().tolist()))
-                G = G + BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens[:j].int().tolist(),weights=(1/4,1/4,1/4,1/4)) - BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens[:j-1].int().tolist(),weights=(1/4,1/4,1/4,1/4))
+                G = G + BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens[:j].int().tolist(),weights=(1/3,1/3,1/3)) - BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens[:j-1].int().tolist(),weights=(1/3,1/3,1/3))
             else:
-                G =  G + BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens[:j].int().tolist(),weights=(1/4,1/4,1/4,1/4))
+                G =  G + BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens[:j].int().tolist(),weights=(1/3,1/3,1/3))
             
       
         lossRL += - G * torch.log(output_soft[len(output_soft)-i-1])   
@@ -500,7 +500,7 @@ def trainRL(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, de
     #except:
     #    1
     #print(target_tensor.view(1,-1).int().tolist(),decoded_tokens.int().tolist())
-    return BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens.int().tolist(),weights=(1/4,1/4,1/4,1/4))
+    return BLEU(target_tensor.view(1,-1).int().tolist(),decoded_tokens.int().tolist(),weights=(1/3,1/3,1/3))
 def trainItersRL(encoder, decoder, n_iters, print_every=1000, plot_every=200, learning_rate=0.01):
     start = time.time()
     plot_losses = []
@@ -542,11 +542,11 @@ def trainItersRL(encoder, decoder, n_iters, print_every=1000, plot_every=200, le
     #loc = ticker.MultipleLocator(base=0.2)
     #ax.yaxis.set_major_locator(loc)
     ax.plot(plot_losses)
-    ax.set_ylabel('BLEU score REINFORCE')
+    ax.set_title('BLEU score REINFORCE')
     plt.show()
     
 #with torch.autograd.set_detect_anomaly(True):
-trainItersRL(encoder1, decoder1, 150000, print_every=1000)
+trainItersRL(encoder1, decoder1, 2000000, print_every=5000)
 #%%
 evaluateNRandomly(encoder1, decoder1,n = 5000)
 #%%
